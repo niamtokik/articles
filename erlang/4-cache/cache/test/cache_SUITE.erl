@@ -27,8 +27,8 @@ suite() ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-init_per_suite(Config) ->
-    Config.
+init_per_suite(_Config) ->
+    _Config.
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -86,12 +86,24 @@ cache(Config) ->
 %%--------------------------------------------------------------------
 cache_sup(Config) ->
     CacheSup = proplists:get_value(pid, Config),
-    Children = supervisor:which_children(CacheSup),
-    ok.
+    Count = supervisor:count_children(CacheSup),
+    1 = proplists:get_value(specs, Count),
+    1 = proplists:get_value(active, Count),
+    0 = proplists:get_value(supervisors, Count),
+    1 = proplists:get_value(workers, Count),
+    [{cache, Cache, worker, [gen_server]}] = supervisor:which_children(CacheSup),
+    cache([{pid, Cache}]).
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
 cache_app(_Config) ->
-    ok.
+    ok = application:ensure_started(cache),
+    CacheSup = erlang:whereis(cache_sup),
+    true = erlang:is_pid(CacheSup),
+    cache_sup([{pid, CacheSup}]),
+
+    Cache = erlang:whereis(cache),
+    true = erlang:is_pid(Cache),
+    cache([{pid, Cache}]).

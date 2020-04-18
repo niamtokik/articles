@@ -13,7 +13,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    supervisor:start_link(?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %%--------------------------------------------------------------------
 %% @doc init/1 est un callback obligatoire. Dans ce cas là, 2 enfants
@@ -24,8 +24,8 @@ init(_Args) ->
     SupervisorConf = #{ strategy => one_for_one,
                         intensity => 1,
                         period => 5 },
-    EventStart = {gen_event, start_link, [{local, cache_event}, []]},
-    EventSpec = #{ id => cache_event, start => EventStart },
+    % EventStart = {gen_event, start_link, [{local, cache_event}, []]},
+    % EventSpec = #{ id => cache_event, start => EventStart },
     CacheStart = {gen_server, start_link, [{local, cache}, cache, [], []]},
     CacheSpec = #{ id => cache, start => CacheStart },
-    {ok, {SupervisorConf, [EventSpec, CacheSpec]}}.
+    {ok, {SupervisorConf, [CacheSpec]}}.
