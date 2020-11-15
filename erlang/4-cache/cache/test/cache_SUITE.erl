@@ -49,6 +49,9 @@ init_per_testcase(cache_sup, Config) ->
     [{pid,Pid}|Config];
 init_per_testcase(cache_app, Config) ->
     ok = application:start(cache),
+    Config;
+init_per_testcase(crash_test, Config) ->
+    ok = application:start(cache),
     Config.
 
 %%--------------------------------------------------------------------
@@ -62,6 +65,8 @@ end_per_testcase(cache_sup, Config) ->
     Pid = proplists:get_value(pid, Config),
     gen_server:stop(Pid);
 end_per_testcase(cache_app, _Config) ->
+    application:stop(cache);
+end_per_testcase(crash_test, _Config) ->
     application:stop(cache).
 
 %%--------------------------------------------------------------------
@@ -107,3 +112,4 @@ cache_app(_Config) ->
     Cache = erlang:whereis(cache),
     true = erlang:is_pid(Cache),
     cache([{pid, Cache}]).
+
