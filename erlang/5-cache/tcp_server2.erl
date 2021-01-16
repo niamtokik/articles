@@ -1,3 +1,9 @@
+%%%-------------------------------------------------------------------
+%%% @author Mathieu Kerjouan
+%%% @copyright 2021 (c) Mathieu Kerjouan
+%%% @doc
+%%% @end
+%%%-------------------------------------------------------------------
 -module(tcp_server2).
 -export([start/1]).
 -export([init/1, terminate/2]).
