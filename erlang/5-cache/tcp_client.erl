@@ -11,9 +11,19 @@
 -behavior(gen_server).
 -include_lib("kernel/include/logger.hrl").
 
+%%--------------------------------------------------------------------
+%% @doc
+%%
+%% @end
+%%--------------------------------------------------------------------
 start(Args) ->
     gen_server:start(?MODULE, Args, [debug]).
 
+%%--------------------------------------------------------------------
+%% @doc
+%%
+%% @end
+%%--------------------------------------------------------------------
 init(Args) ->
     logger:set_module_level(?MODULE, debug),
     Adresse = maps:get(adresse, Args),
@@ -23,9 +33,19 @@ init(Args) ->
     gen_tcp:send(Controle, Message),
     {ok, Controle}.
 
+%%--------------------------------------------------------------------
+%% @doc
+%%
+%% @end
+%%--------------------------------------------------------------------
 terminate(_Reason, Controle) ->
     gen_tcp:close(Controle).
 
+%%--------------------------------------------------------------------
+%% @doc
+%%
+%% @end
+%%--------------------------------------------------------------------
 handle_cast({send, Message}, Controle) ->
     ?LOG_DEBUG("received cast: ~p", [Controle]),
     gen_tcp:send(Controle, Message),
@@ -34,10 +54,20 @@ handle_cast(Message, Controle) ->
     ?LOG_DEBUG("received cast: ~p", [Controle]),
     {noreply, Controle}.
 
+%%--------------------------------------------------------------------
+%% @doc
+%%
+%% @end
+%%--------------------------------------------------------------------
 handle_call(Message, From, Process) ->
     ?LOG_DEBUG("received call from ~p: ~p", [From, Message]),
     {reply, ok, Process}.
 
+%%--------------------------------------------------------------------
+%% @doc
+%%
+%% @end
+%%--------------------------------------------------------------------
 handle_info({tcp_closed, Controle}, Controle) ->
     {stop, normal, Controle};
 handle_info(Message, Controle) ->
