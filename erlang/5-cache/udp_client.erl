@@ -41,7 +41,7 @@ start(Arguments) ->
 %%--------------------------------------------------------------------
 -spec init(Arguments) -> Retour when
       Arguments :: proplists:proplist(),
-      Retour :: {ok, pid()}.
+      Retour :: {ok, port()}.
 init(Arguments) ->
     DestinationAdresse = proplists:get_value(adresse, Arguments),
     DestinationPort = proplists:get_value(port, Arguments),
@@ -61,7 +61,7 @@ init(Arguments) ->
 %%--------------------------------------------------------------------
 -spec terminate(Raison, Interface) -> Retour when
       Raison :: term(),
-      Interface :: pid(),
+      Interface :: port(),
       Retour :: ok.
 terminate(Raison, Interface) ->
     ?LOG_DEBUG("Raison de l'arrêt: ~p", [Raison]),
@@ -75,7 +75,7 @@ terminate(Raison, Interface) ->
 %%--------------------------------------------------------------------
 -spec handle_cast(Message, Interface) -> Retour when
       Message :: timeout | term(),
-      Interface :: pid(),
+      Interface :: port(),
       Retour :: {noreply, Interface} |
                 {stop, {shutdown, timeout}, Interface}.
 handle_cast(timeout, Interface) ->
@@ -93,7 +93,7 @@ handle_cast(Message, Interface) ->
 -spec handle_call(Message, From, Interface) -> Retour when
       Message :: term(),
       From :: pid(),
-      Interface :: pid(),
+      Interface :: port(),
       Retour :: {reply, ok, Interface}.
 handle_call(Message, From, Interface) ->
     ?LOG_DEBUG("Message call reçu depuis ~p: ~p", [From, Message]),
@@ -107,7 +107,7 @@ handle_call(Message, From, Interface) ->
 %%--------------------------------------------------------------------
 -spec handle_info(Data, Interface) -> Retour when
       Data :: {udp, Interface, Source, Port, Message} | term(),
-      Interface :: pid(),
+      Interface :: port(),
       Source :: term(),
       Port :: integer(),
       Message :: bitstring(),
