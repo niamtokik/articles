@@ -24,52 +24,52 @@ start(Args) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
-init(Args) ->
+init(Arguments) ->
     logger:set_module_level(?MODULE, debug),
-    Adresse = maps:get(adresse, Args),
-    Port = maps:get(port, Args),
-    Message = maps:get(message, Args),
-    {ok, Controle} = gen_tcp:connect(Adresse, Port, [{mode, binary},{active,true}]),
-    gen_tcp:send(Controle, Message),
-    {ok, Controle}.
+    Adresse = maps:get(adresse, Arguments),
+    Port = maps:get(port, Arguments),
+    Message = maps:get(message, Arguments),
+    {ok, Client} = gen_tcp:connect(Adresse, Port, [{mode, binary},{active,true}]),
+    gen_tcp:send(Client, Message),
+    {ok, Client}.
 
 %%--------------------------------------------------------------------
 %% @doc
 %%
 %% @end
 %%--------------------------------------------------------------------
-terminate(_Reason, Controle) ->
-    gen_tcp:close(Controle).
+terminate(_Reason, Client) ->
+    gen_tcp:close(Client).
 
 %%--------------------------------------------------------------------
 %% @doc
 %%
 %% @end
 %%--------------------------------------------------------------------
-handle_cast({send, Message}, Controle) ->
+handle_cast({send, Message}, Client) ->
     ?LOG_DEBUG("Donnée TCP à envoyer: ~p", [Message]),
-    gen_tcp:send(Controle, Message),
-    {noreply, Controle};
-handle_cast(Message, Controle) ->
+    gen_tcp:send(Client, Message),
+    {noreply, Client};
+handle_cast(Message, Client) ->
     ?LOG_DEBUG("Message cast cast: ~p", [Message]),
-    {noreply, Controle}.
+    {noreply, Client}.
 
 %%--------------------------------------------------------------------
 %% @doc
 %%
 %% @end
 %%--------------------------------------------------------------------
-handle_call(Message, From, Process) ->
+handle_call(Message, From, Client) ->
     ?LOG_DEBUG("Message call reçu depuis ~p: ~p", [From, Message]),
-    {reply, ok, Process}.
+    {reply, ok, Client}.
 
 %%--------------------------------------------------------------------
 %% @doc
 %%
 %% @end
 %%--------------------------------------------------------------------
-handle_info({tcp_closed, Controle}, Controle) ->
-    {stop, normal, Controle};
-handle_info(Message, Controle) ->
+handle_info({tcp_closed, Client}, Client) ->
+    {stop, normal, Client};
+handle_info(Message, Client) ->
     ?LOG_DEBUG("Message info reçu: ~p", [Message]),
-    {noreply, Controle}.
+    {noreply, Client}.

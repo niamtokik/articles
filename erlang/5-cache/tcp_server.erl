@@ -47,9 +47,9 @@ start(Arguments) ->
 init(Arguments) ->
     logger:set_module_level(?MODULE, debug),
     Port = proplists:get_value(port, Arguments, 8888),
+    Acceptors = proplists:get_value(acceptors, Arguments, 100),
     {ok, Listener} = gen_tcp:listen(Port, [binary, {active, true}]),
-    [ spawn_monitor(fun() -> acceptor(Listener) end) || _ <- lists:seq(0,100) ],
-    io:format("~p~n", [erlang:process_info(self(), monitors)]),
+    [ spawn_monitor(fun() -> acceptor(Listener) end) || _ <- lists:seq(0,Acceptors) ],
     {ok, Listener}.
 
 %%--------------------------------------------------------------------
@@ -94,8 +94,9 @@ acceptor(Listener) ->
       Retour :: ok.
 acceptor_loop(AcceptSock) ->
     receive
-        {tcp, _Port, Message} = _Data ->
+        {tcp, Client, Message} = _Data ->
             ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
+            gen_tcp:send(Client, <<"echo: ", Message/bitstring>>),
             acceptor_loop(AcceptSock);
         {tcp_closed, AcceptSock} = _Data ->
             ?LOG_DEBUG("Acceptor ~p s'arrête", [self()]),
