@@ -102,7 +102,6 @@ acceptor_loop(AcceptSock) ->
             gen_tcp:close(AcceptSock);
         Message ->
             ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
-            io:format("received ~p~n", [Message]),
             acceptor_loop(AcceptSock)
     end.
 

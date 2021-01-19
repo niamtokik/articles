@@ -47,11 +47,11 @@ terminate(_Reason, Controle) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast({send, Message}, Controle) ->
-    ?LOG_DEBUG("received cast: ~p", [Controle]),
+    ?LOG_DEBUG("Donnée TCP à envoyer: ~p", [Message]),
     gen_tcp:send(Controle, Message),
     {noreply, Controle};
 handle_cast(Message, Controle) ->
-    ?LOG_DEBUG("received cast: ~p", [Controle]),
+    ?LOG_DEBUG("Message cast cast: ~p", [Message]),
     {noreply, Controle}.
 
 %%--------------------------------------------------------------------
@@ -60,7 +60,7 @@ handle_cast(Message, Controle) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call(Message, From, Process) ->
-    ?LOG_DEBUG("received call from ~p: ~p", [From, Message]),
+    ?LOG_DEBUG("Message call reçu depuis ~p: ~p", [From, Message]),
     {reply, ok, Process}.
 
 %%--------------------------------------------------------------------
@@ -71,5 +71,5 @@ handle_call(Message, From, Process) ->
 handle_info({tcp_closed, Controle}, Controle) ->
     {stop, normal, Controle};
 handle_info(Message, Controle) ->
-    ?LOG_DEBUG("received info: ~p", [Message]),
+    ?LOG_DEBUG("Message info reçu: ~p", [Message]),
     {noreply, Controle}.

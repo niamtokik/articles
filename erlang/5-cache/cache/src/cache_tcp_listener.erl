@@ -23,7 +23,7 @@ start_link(Arguments) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
-callback_mode() -> state_functions.     
+callback_mode() -> [state_functions, state_enter].
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -31,7 +31,9 @@ callback_mode() -> state_functions.
 %% @end
 %%--------------------------------------------------------------------
 init(Arguments) ->
-    Listener = [],
+    logger:set_module_level(?MODULE, debug),
+    Port = proplists:get_value(port, Arguments, 8888),
+    {ok, Listener} = gen_tcp:listen(Port, [binary, {active, true}]),
     {ok, active, Listener}.
 
 %%--------------------------------------------------------------------
@@ -47,6 +49,9 @@ terminate(Raison, State, Listener) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
+active(enter, _, Listener) ->
+    ?LOG_DEBUG("enter active state"),
+    {keep_state, Listener};
 active(cast, standby, Listener) ->
     ?LOG_DEBUG("active -> standby", []),
     {next_state, standby, Listener};

@@ -47,7 +47,7 @@ init(UdpPort)
   when is_integer(UdpPort)->
     Options = [{mode, binary}],
     {ok, Interface} = gen_udp:open(UdpPort, Options),
-    ?LOG_DEBUG("Listen on ~p with interface ~p", [UdpPort, Interface]),
+    ?LOG_DEBUG("Écoute sur le port UDP ~p avec l'interface ~p", [UdpPort, Interface]),
     {ok, Interface}.
 
 %%--------------------------------------------------------------------
@@ -74,7 +74,7 @@ terminate(_Raison, Interface) ->
       Interface :: port(),
       Retour :: {noreply, Interface}.
 handle_cast(Message, Interface) ->
-    ?LOG_DEBUG("received cast: ~p", [Message]),
+    ?LOG_DEBUG("Message cast reçu: ~p", [Message]),
     {noreply, Interface}.
 
 %%--------------------------------------------------------------------
@@ -89,7 +89,7 @@ handle_cast(Message, Interface) ->
       Interface :: port(),
       Retour :: {reply, ok, Interface}.
 handle_call(Message, From, Interface) ->
-    ?LOG_DEBUG("received call from ~p: ~p", [From, Message]),
+    ?LOG_DEBUG("Message call reçu depuis ~p: ~p", [From, Message]),
     {reply, ok, Interface}.
 
 %%--------------------------------------------------------------------
@@ -108,9 +108,9 @@ handle_call(Message, From, Interface) ->
       Interface :: port(),
       Retour :: {noreply, Interface}.
 handle_info({udp, Process, Source, Port, Message} = _Data, Interface) ->
-    ?LOG_DEBUG("received ~p from ~p:~p", [Message, Source, Port]),
+    ?LOG_DEBUG("Message UDP  reçu depuis ~p:~p: ~p", [Source, Port, Message]),
     gen_udp:send(Process, Source, Port, <<"echo: ", Message/bitstring>>),
     {noreply, Interface};
 handle_info(Message, Interface) ->
-    ?LOG_DEBUG("received info: ~p", [Message]),
+    ?LOG_DEBUG("Message info reçu: ~p", [Message]),
     {noreply, Interface}.
