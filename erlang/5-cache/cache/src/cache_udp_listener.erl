@@ -1,21 +1,7 @@
 %%%-------------------------------------------------------------------
-%%% @author Mathieu Kerjouan
-%%% @copyright 2021 (c) Mathieu Kerjouan
-%%% @doc Exemple d'utilisation, dans le shell Erlang tout d'abord:
 %%%
-%%%   1> c(udp_server).
-%%%   2>  {ok, PID} = gen_server:start(udp_server, 31415, []).
-%%%
-%%% Puis dans un shell classique (jot est une commande similaire à la
-%%% commande seq sous openbsd):
-%%%
-%%%   jot 100 1 \
-%%%     | xargs -I%i -P100 \
-%%%       sh -c "printf -- 'add 1 2' | nc -w 1 -u 127.0.0.1 31415"
-%%%
-%%% @end
 %%%-------------------------------------------------------------------
--module(udp_server).
+-module(cache_udp_listener).
 -export([start/1]).
 -export([init/1, terminate/2]).
 -export([handle_cast/2, handle_call/3, handle_info/2]).
@@ -108,10 +94,34 @@ handle_call(Message, From, Interface) ->
       Interface :: port(),
       Retour :: {noreply, Interface}.
 handle_info({udp, Process, Source, Port, Message} = _Data, Interface) ->
-    io:format("~p~n", [_Data]),
-    ?LOG_DEBUG("Message UDP  reçu depuis ~p:~p: ~p", [Source, Port, Message]),
-    gen_udp:send(Process, Source, Port, <<"echo: ", Message/bitstring>>),
-    {noreply, Interface};
+    ?LOG_DEBUG("Message UDP  reçu depuis ~p:~p: ~p, ~p", [Source, Port, Message, Process]),
+    case re:split(Message, <<" ">>, [{parts, 3}]) of
+        [<<"add">>, Key, Value] -> 
+            cache:add(cache, Key, Value),
+            {noreply, Interface};
+        [<<"get">>, Key] -> 
+            Value = cache:get(cache, Key),
+            gen_udp:send(Process, Source, Port, convert(Value)),
+            {noreply, Interface};
+        [<<"delete">>, Key] -> 
+            cache:delete(cache, Key),
+            {noreply, Interface};
+        [<<"get_keys">>] -> 
+            Keys = cache:get_keys(cache),
+            gen_udp:send(Process, Source, Port, convert(Keys)),
+            {noreply, Interface};
+        [<<"get_values">>] ->
+            Values = cache:get_values(cache),
+            gen_udp:send(Process, Source, Port, convert(Values)),
+            {noreply, Interface};
+        _ ->
+            gen_udp:send(Process, Source, Port, <<"bad command\n">>),
+            {noreply, Interface}
+    end;
 handle_info(Message, Interface) ->
     ?LOG_DEBUG("Message info reçu: ~p", [Message]),
     {noreply, Interface}.
+
+convert(Value) ->
+    A = io_lib:format("~p", [Value], []),
+    erlang:list_to_binary(A).

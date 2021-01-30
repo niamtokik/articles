@@ -31,7 +31,9 @@
 -export([server/0]).
 
 server() ->
+    io:format("démarrage de l'application ssl...~n", []),
     application:ensure_all_started(ssl),
+
     Port = 31415,
     Options = [{keyfile, "key.pem"}    % configuration du chemin vers la clé privée
               ,{certfile, "cert.pem"}  % configuration du chemin vers le certificat

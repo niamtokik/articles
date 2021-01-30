@@ -92,12 +92,10 @@ cache(Config) ->
 cache_sup(Config) ->
     CacheSup = proplists:get_value(pid, Config),
     Count = supervisor:count_children(CacheSup),
-    1 = proplists:get_value(specs, Count),
-    1 = proplists:get_value(active, Count),
-    0 = proplists:get_value(supervisors, Count),
-    1 = proplists:get_value(workers, Count),
-    [{cache, Cache, worker, [gen_server]}] = supervisor:which_children(CacheSup),
-    cache([{pid, Cache}]).
+    2 = proplists:get_value(specs, Count),
+    2 = proplists:get_value(active, Count),
+    1 = proplists:get_value(supervisors, Count),
+    1 = proplists:get_value(workers, Count).
 
 %%--------------------------------------------------------------------
 %% @doc

@@ -3,7 +3,7 @@
 %%% gestionnaire d'évènement.  
 %%% @end
 %%%-------------------------------------------------------------------
--module(cache_sup).
+-module(cache_udp_sup).
 -behaviour(supervisor).
 -export([init/1, start_link/0]).
 
@@ -24,10 +24,6 @@ init(_Args) ->
     SupervisorConf = #{ strategy => one_for_one,
                         intensity => 1,
                         period => 5 },
-    % EventStart = {gen_event, start_link, [{local, cache_event}, []]},
-    % EventSpec = #{ id => cache_event, start => EventStart },
-    CacheStart = {gen_server, start_link, [{local, cache}, cache, [], []]},
-    CacheSpec = #{ id => cache, start => CacheStart },
-    UdpStart = {supervisor, start_link, [{local, cache_udp_sup}, cache_udp_sup, []]},
-    UdpSpec = #{ id => cache_udp_sup, start => UdpStart, type => supervisor },
-    {ok, {SupervisorConf, [CacheSpec, UdpSpec]}}.
+    UdpStart = {gen_server, start_link, [{local, cache_udp_listener}, cache_udp_listener, 31415, []]},
+    UdpSpec = #{ id => cache_udp_listener, start => UdpStart },
+    {ok, {SupervisorConf, [UdpSpec]}}.
