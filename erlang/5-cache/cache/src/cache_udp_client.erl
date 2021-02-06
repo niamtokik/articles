@@ -1,5 +1,7 @@
 -module(cache_udp_client).
--compile(export_all).
+-export([send_async/3, send_sync/3, send_sync/4]).
+-export([add/4, delete/3, get/3, get_keys/2, get_values/2]).
+-include_lib("kernel/include/logger.hrl").
 
 send_async(Host, Port, Message) ->
     {ok, P} = gen_udp:open(source_port(), [binary]),
@@ -7,6 +9,9 @@ send_async(Host, Port, Message) ->
     gen_udp:close(P).
 
 send_sync(Host, Port, Message) ->
+    send_sync(Host, Port, Message, 3000).
+
+send_sync(Host, Port, Message, Timeout) ->
     {ok, P} = gen_udp:open(source_port(), [binary]),    
     gen_udp:send(P, Host, Port, Message),
     receive 
@@ -14,13 +19,10 @@ send_sync(Host, Port, Message) ->
             gen_udp:close(P),
             {ok, Answer}
     after
-        3000 -> 
+        Timeout -> 
             gen_udp:close(P),
             {error, timeout}
     end.
-
-source_port() ->
-    1024+ceil(rand:uniform()*64511).
 
 add(Host, Port, Key, Value) ->
     send_async(Host, Port, join([<<"add">>, Key, Value])).
@@ -36,6 +38,9 @@ get_keys(Host, Port) ->
 
 get_values(Host, Port) ->
     send_sync(Host, Port, [<<"get_values">>]).
+
+source_port() ->
+    1024+ceil(rand:uniform()*64511).
 
 join(List) ->
     join(List, <<>>).

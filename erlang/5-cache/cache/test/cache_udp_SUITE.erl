@@ -58,6 +58,9 @@ end_per_testcase(_, Config) ->
 %%--------------------------------------------------------------------
 udp(Config) ->
     ok = cache_udp_client:add(localhost, 31415, <<"key">>, <<"value">>),
-    {ok, <<"<<\"value\">>">>} = cache_udp_client:get(localhost, 31415, <<"key">>),
-    ok = cache_udp_client:delete(localhost, 31415, <<"key">>).
+    {ok, <<"value">>} = cache_udp_client:get(localhost, 31415, <<"key">>),
+    {ok, <<"key">>} = cache_udp_client:get_keys(localhost, 31415),
+    {ok, <<"value">>} = cache_udp_client:get_values(localhost, 31415),
+    ok = cache_udp_client:delete(localhost, 31415, <<"key">>),
+    {error, timeout} = cache_udp_client:get(localhost, 31415, <<"key">>).
 

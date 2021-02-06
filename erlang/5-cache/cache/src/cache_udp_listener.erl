@@ -2,7 +2,7 @@
 %%%
 %%%-------------------------------------------------------------------
 -module(cache_udp_listener).
--export([start/1]).
+-export([start/1, start_link/1]).
 -export([init/1, terminate/2]).
 -export([handle_cast/2, handle_call/3, handle_info/2]).
 -behavior(gen_server).
@@ -19,6 +19,12 @@
       Retour :: {ok, pid()}.
 start(Arguments) ->
     gen_server:start(?MODULE, Arguments, [debug]).
+
+-spec start_link(Arguments) -> Retour when
+      Arguments :: integer(),
+      Retour :: {ok, pid()}.
+start_link(Arguments) ->
+    gen_server:start_link(?MODULE, Arguments, [debug]).
 
 %%--------------------------------------------------------------------
 %% @doc init/1 permet d'initialiser le serveur UDP en créant un socket
@@ -93,35 +99,49 @@ handle_call(Message, From, Interface) ->
       Message :: bitstring(),
       Interface :: port(),
       Retour :: {noreply, Interface}.
-handle_info({udp, Process, Source, Port, Message} = _Data, Interface) ->
+handle_info({udp, Process, Source, Port, Message} = Data, Interface) ->
     ?LOG_DEBUG("Message UDP  reçu depuis ~p:~p: ~p, ~p", [Source, Port, Message, Process]),
-    case re:split(Message, <<" ">>, [{parts, 3}]) of
-        [<<"add">>, Key, Value] -> 
-            cache:add(cache, Key, Value),
-            {noreply, Interface};
-        [<<"get">>, Key] -> 
-            Value = cache:get(cache, Key),
-            gen_udp:send(Process, Source, Port, convert(Value)),
-            {noreply, Interface};
-        [<<"delete">>, Key] -> 
-            cache:delete(cache, Key),
-            {noreply, Interface};
-        [<<"get_keys">>] -> 
-            Keys = cache:get_keys(cache),
-            gen_udp:send(Process, Source, Port, convert(Keys)),
-            {noreply, Interface};
-        [<<"get_values">>] ->
-            Values = cache:get_values(cache),
-            gen_udp:send(Process, Source, Port, convert(Values)),
-            {noreply, Interface};
-        _ ->
-            gen_udp:send(Process, Source, Port, <<"bad command\n">>),
-            {noreply, Interface}
-    end;
+    command(Data, Interface),
+    {noreply, Interface};
 handle_info(Message, Interface) ->
     ?LOG_DEBUG("Message info reçu: ~p", [Message]),
     {noreply, Interface}.
 
-convert(Value) ->
-    A = io_lib:format("~p", [Value], []),
-    erlang:list_to_binary(A).
+command({udp, Process, Source, Port, Message} = Data, Interface) ->
+    Parse = re:split(Message, <<" ">>, [{parts, 3}]),
+    case Parse of
+        [<<"add">>, Key, Value] -> 
+            cache:add(cache, Key, Value);
+        [<<"get">>, Key] -> 
+            Value = cache:get(cache, Key),
+            ?LOG_DEBUG("valeur retournée: ~p", [Value]),
+            gen_udp:send(Process, Source, Port, Value);
+        [<<"delete">>, Key] -> 
+            cache:delete(cache, Key);
+        [<<"get_keys">>] -> 
+            Keys = cache:get_keys(cache),
+            ?LOG_DEBUG("valeur retournée: ~p", [Keys]),
+            gen_udp:send(Process, Source, Port, Keys);
+        [<<"get_values">>] ->
+            Values = cache:get_values(cache),
+            ?LOG_DEBUG("valeur retournée: ~p", [Values]),
+            gen_udp:send(Process, Source, Port, Values);
+        Command -> 
+            ?LOG_WARNING("commande ~p non supportée", [Command])
+    end.
+
+command_parser(Command) ->
+    case Command of
+        [<<"add">>, Key, Value] ->
+            [add, Key, Value];
+        [<<"get">>, Key] ->
+            [get, Key];
+        [<<"delete">>, Key] -> 
+            [delete, Key];
+        [<<"get_keys">>] -> 
+            [get_keys];
+        [<<"get_values">>] ->
+            [get_values];
+        _ ->
+            [bad_command]
+    end.

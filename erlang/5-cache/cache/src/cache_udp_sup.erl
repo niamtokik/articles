@@ -20,10 +20,12 @@ start_link() ->
 %% sont créés, un pour cache_event et un autre pour le module cache.
 %% @end
 %%--------------------------------------------------------------------
-init(_Args) ->
+init(Arguments) ->
+    Port = proplists:get_value(port, Arguments, 31415),
     SupervisorConf = #{ strategy => one_for_one,
                         intensity => 1,
                         period => 5 },
-    UdpStart = {gen_server, start_link, [{local, cache_udp_listener}, cache_udp_listener, 31415, []]},
+    UdpArgs = [{local, cache_udp_listener}, cache_udp_listener, Port, []],
+    UdpStart = {gen_server, start_link, UdpArgs},
     UdpSpec = #{ id => cache_udp_listener, start => UdpStart },
     {ok, {SupervisorConf, [UdpSpec]}}.

@@ -17,15 +17,15 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(tcp_server).
--export([start/1]).
--export([init/1, terminate/2]).
--export([handle_cast/2, handle_call/3, handle_info/2]).
--behavior(gen_server).
+-export([start/1, start_link/1]).
+-export([init/1, terminate/3, callback_mode/0]).
+-export([handle_event/4]).
+-behavior(gen_statem).
 -include_lib("kernel/include/logger.hrl").
 
 %%--------------------------------------------------------------------
 %% @doc start/1 démarre le serveur TCP en utilisant la fonction
-%% gen_server:start/3.
+%% gen_statem:start/3.
 %%
 %% @end
 %%--------------------------------------------------------------------
@@ -33,7 +33,26 @@
       Arguments :: proplists:proplist(),
       Retour :: {ok, pid()}.
 start(Arguments) ->
-    gen_server:start(?MODULE, Arguments, [debug]).
+    gen_statem:start_link(?MODULE, Arguments, [debug]).
+
+%%--------------------------------------------------------------------
+%% @doc start_link/1 démarre le serveur TCP en utilisant la fonction
+%% gen_statem:start_link/3.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec start_link(Arguments) -> Retour when
+      Arguments :: proplists:proplist(),
+      Retour :: {ok, pid()}.
+start_link(Arguments) ->
+    gen_statem:start_link(?MODULE, Arguments, [debug]).
+
+%%--------------------------------------------------------------------
+%%
+%%--------------------------------------------------------------------
+-spec callback_mode() -> Return when
+      Return :: atom().
+callback_mode() -> handle_event_function.
 
 %%--------------------------------------------------------------------
 %% @doc init/1 paramètre le processus utilisant le behavior
@@ -43,14 +62,15 @@ start(Arguments) ->
 %%--------------------------------------------------------------------
 -spec init(Arguments) -> Retour when
       Arguments :: proplists:proplist(),
-      Retour :: {ok, port()}.
+      Retour :: {ok, State, port()},
+      State :: atom().
 init(Arguments) ->
     logger:set_module_level(?MODULE, debug),
     Port = proplists:get_value(port, Arguments, 8888),
     Acceptors = proplists:get_value(acceptors, Arguments, 100),
     {ok, Listener} = gen_tcp:listen(Port, [binary, {active, true}]),
     [ spawn_monitor(fun() -> acceptor(Listener) end) || _ <- lists:seq(0,Acceptors) ],
-    {ok, Listener}.
+    {ok, started, Listener}.
 
 %%--------------------------------------------------------------------
 %% @doc terminate/2 arrête proprement les acceptors et ferme le
@@ -58,11 +78,12 @@ init(Arguments) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec terminate(Raison, Listener) -> Retour when
+-spec terminate(Raison, Etat, Listener) -> Retour when
       Raison :: term(),
+      Etat :: atom(),
       Listener :: port(),
       Retour :: ok.
-terminate(_Raison, Listener) ->
+terminate(_Raison, _Etat, Listener) ->
     {monitors, List} = erlang:process_info(self(), monitors),
     [ erlang:exit(Pid,kill) || {process, Pid} <- List ],
     gen_tcp:close(Listener).
@@ -107,46 +128,30 @@ acceptor_loop(AcceptSock) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @doc handle_cast/2 n'est pas utilisé dans ce module.
-%%
+%% @doc 
 %% @end
 %%--------------------------------------------------------------------
--spec handle_cast(Message, Listener) -> Retour when
-      Message :: term(),
-      Listener :: port(),
-      Retour :: {noreply, Listener}.
-handle_cast(Message, Listener) ->
-    ?LOG_DEBUG("Message cast reçu: ~p", [Message]),
-    {noreply, Listener}.
-
-%%--------------------------------------------------------------------
-%% @doc handle_call/3 n'est pas utilisé dans ce module.
-%%
-%% @end
-%%--------------------------------------------------------------------
--spec handle_call(Message, From, Listener) -> Retour when
-      Message :: term(),
-      From :: pid(),
-      Listener :: port(),
-      Retour :: {reply, ok, Listener}.
-handle_call(Message, From, Listener) ->
-    ?LOG_DEBUG("Message call reçu ~p depuis ~p", [From, Message]),
-    {reply, ok, Listener}.
-
-%%--------------------------------------------------------------------
-%% @doc handle_info/2 récupère les messages des processus acceptors
-%% qui se terminent, puis, en redémarre un automatiquement.
-%%
-%% @end
-%%--------------------------------------------------------------------
--spec handle_info(Message, Listener) -> Retour when
+-spec handle_event(Type, Message, State, Listener) -> Retour when
+      Type :: info,
       Message :: {'DOWN', reference(), process, pid(), term()} | term(),
+      State :: atom(),
       Listener :: port(),
       Retour :: {noreply, Listener}.
-handle_info({'DOWN', _Ref, process, Process, _}, Listener) ->
+
+handle_event({call, From}, Message, started, Listener) ->
+    ?LOG_DEBUG("Message call reçu ~p depuis ~p", [Message, From]),
+    {keep_state, Listener, [{reply, From, ok}]};
+
+handle_event(cast, Message, started, Listener) ->
+    ?LOG_DEBUG("Message cast reçu: ~p", [Message]),
+    {keep_state, Listener};
+
+handle_event(info, {'DOWN', _Ref, process, Process, _}, started, Listener) ->
     ?LOG_DEBUG("Arrêt de l'acceptor ~p", [Process]),
     spawn_monitor(fun() -> acceptor(Listener) end),
-    {noreply, Listener};
-handle_info(Message, Listener) ->
-    ?LOG_DEBUG("Message info reçu: ~p", [Message]),
-    {noreply, Listener}.
+    {keep_state, Listener};
+handle_event(info, Message, started, Listener) ->
+    {keep_state, Listener}.
+
+    
+
