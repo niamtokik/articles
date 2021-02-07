@@ -129,19 +129,3 @@ command({udp, Process, Source, Port, Message} = Data, Interface) ->
         Command -> 
             ?LOG_WARNING("commande ~p non supportée", [Command])
     end.
-
-command_parser(Command) ->
-    case Command of
-        [<<"add">>, Key, Value] ->
-            [add, Key, Value];
-        [<<"get">>, Key] ->
-            [get, Key];
-        [<<"delete">>, Key] -> 
-            [delete, Key];
-        [<<"get_keys">>] -> 
-            [get_keys];
-        [<<"get_values">>] ->
-            [get_values];
-        _ ->
-            [bad_command]
-    end.

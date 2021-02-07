@@ -31,7 +31,7 @@ callback_mode() -> [state_enter, state_functions].
 %%--------------------------------------------------------------------
 init(Arguments) ->
     logger:set_module_level(?MODULE, debug),
-    Port = proplists:get_value(port, Arguments, 8888),
+    Port = proplists:get_value(port, Arguments, 8889),
     Acceptors = proplists:get_value(acceptors, Arguments, 10),
     {ok, Listener} = gen_tcp:listen(Port, [binary, {active, true}]),
     [ cache_tcp_acceptor_sup:start_acceptor(Listener) || _ <- lists:seq(1, Acceptors) ],
