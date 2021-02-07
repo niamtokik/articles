@@ -47,7 +47,9 @@ init(ListenerSock) ->
 %% @doc
 %%
 %% @end
-%%--------------------------------------------------------------------
+%%-------------------------------------------------------------------
+terminate(_Raison, _Etat, #data{ acceptor_sock = undefined }) ->
+    ok;
 terminate(_Raison, _Etat, #data{ acceptor_sock = AcceptSock }) ->
     gen_tcp:close(AcceptSock).
 
@@ -59,9 +61,13 @@ terminate(_Raison, _Etat, #data{ acceptor_sock = AcceptSock }) ->
 wait(internal, accept_socket, #data{ listener_sock = ListenerSock
                                    , acceptor_sock = undefined } = Data) ->
     ?LOG_DEBUG("acceptor ~p wait for connection", [self()]),
-    {ok, AcceptorSock} = gen_tcp:accept(ListenerSock),
-    ?LOG_DEBUG("acceptor ~p received sock ~p", [self(), AcceptorSock]),
-    {next_state, accept, Data#data{ acceptor_sock = AcceptorSock } }.
+    case gen_tcp:accept(ListenerSock) of
+        {ok, AcceptorSock} ->
+            ?LOG_DEBUG("acceptor ~p received sock ~p", [self(), AcceptorSock]),
+            {next_state, accept, Data#data{ acceptor_sock = AcceptorSock } };
+        {error, Raison} ->
+            {stop, Raison}
+    end.
 
 %%--------------------------------------------------------------------
 %% @doc
