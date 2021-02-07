@@ -24,8 +24,17 @@ init(_Args) ->
     SupervisorConf = #{ strategy => one_for_one,
                         intensity => 1,
                         period => 5 },
+
+    % cache feature
     CacheStart = {gen_server, start_link, [{local, cache}, cache, [], []]},
     CacheSpec = #{ id => cache, start => CacheStart },
+
+    % udp feature
     UdpStart = {supervisor, start_link, [{local, cache_udp_sup}, cache_udp_sup, []]},
     UdpSpec = #{ id => cache_udp_sup, start => UdpStart, type => supervisor },
-    {ok, {SupervisorConf, [CacheSpec, UdpSpec]}}.
+
+    % tcp feature
+    TcpStart = {supervisor, start_link, [{local, cache_tcp_sup}, cache_tcp_sup, []]},
+    TcpSpec = #{ id => cache_tcp_sup, start => TcpStart, type => supervisor },
+    
+    {ok, {SupervisorConf, [CacheSpec, UdpSpec, TcpSpec]}}.

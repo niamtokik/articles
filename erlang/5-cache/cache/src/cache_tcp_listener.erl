@@ -3,8 +3,7 @@
 %%%-------------------------------------------------------------------
 -module(cache_tcp_listener).
 -export([start_link/1]).
--export([callback_mode/0]).
--export([init/1, terminate/3]).
+-export([callback_mode/0, init/1, terminate/3]).
 -export([active/3, standby/3]).
 -export([activate/1, deactivate/1]).
 -behavior(gen_statem).
@@ -16,14 +15,14 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(Arguments) ->
-    gen_statem:start_link(?MODULE, Arguments, []).
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, Arguments, []).
 
 %%--------------------------------------------------------------------
 %% @doc
 %%
 %% @end
 %%--------------------------------------------------------------------
-callback_mode() -> [state_functions, state_enter].
+callback_mode() -> [state_enter, state_functions].
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -33,7 +32,9 @@ callback_mode() -> [state_functions, state_enter].
 init(Arguments) ->
     logger:set_module_level(?MODULE, debug),
     Port = proplists:get_value(port, Arguments, 8888),
+    Acceptors = proplists:get_value(acceptors, Arguments, 10),
     {ok, Listener} = gen_tcp:listen(Port, [binary, {active, true}]),
+    [ cache_tcp_acceptor_sup:start_acceptor(Listener) || _ <- lists:seq(1, Acceptors) ],
     {ok, active, Listener}.
 
 %%--------------------------------------------------------------------
@@ -41,8 +42,8 @@ init(Arguments) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
-terminate(Raison, State, Listener) ->
-    ok.
+terminate(_Raison, _State, Listener) ->
+    gen_tcp:close(Listener).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -50,12 +51,10 @@ terminate(Raison, State, Listener) ->
 %% @end
 %%--------------------------------------------------------------------
 active(enter, _, Listener) ->
-    ?LOG_DEBUG("enter active state"),
-    {keep_state, Listener};
-active(cast, standby, Listener) ->
-    ?LOG_DEBUG("active -> standby", []),
-    {next_state, standby, Listener};
+    ?LOG_DEBUG("start listener"),
+    {next_state, active, Listener};
 active(MessageType, Message, Listener) ->
+    ?LOG_DEBUG("receive ~p", [Message]),
     {keep_state, Listener}.
 
 %%--------------------------------------------------------------------
