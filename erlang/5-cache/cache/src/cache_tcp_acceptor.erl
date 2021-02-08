@@ -76,42 +76,26 @@ wait(internal, accept_socket, #data{ listener_sock = ListenerSock
 %%--------------------------------------------------------------------
 accept(info, {tcp, _Port, Message} = Content, #data{ acceptor_sock = AcceptSock } = Data) ->
     ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
-    command(Content, Data),
+    case cache_lib:parse(Message) of
+        {error, Raison} -> 
+            gen_tcp:send(AcceptSock, Raison);
+        {Command, Args} -> 
+            Ret = erlang:apply(cache, Command, Args),
+            case Ret of
+                Ret when is_bitstring(Ret) -> gen_tcp:send(AcceptSock, Ret);
+                Ret when is_list(Ret) -> gen_tcp:send(AcceptSock, Ret);
+                _ -> ok
+            end
+    end,
     {keep_state, Data};
 
+%
 accept(info, {tcp_closed, AcceptSock}, #data{ acceptor_sock = AcceptSock } = Data) ->
     ?LOG_DEBUG("Acceptor ~p s'arrête", [self()]),
     ok = gen_tcp:close(AcceptSock),
     {next_state, wait, Data#data{ acceptor_sock = undefined }, [{next_event, internal, accept_socket}] };
 
+%
 accept(info, Message, Data) ->
     ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
     {keep_state, Data}.
-
-%%--------------------------------------------------------------------
-%% @doc
-%% 
-%% @end
-%%--------------------------------------------------------------------
-command({tcp, Process, Message} = Content, Data) ->
-    Parse = re:split(Message, <<" ">>, [{parts, 3}]),
-    case Parse of
-        [<<"add">>, Key, Value] -> 
-            cache:add(cache, Key, Value);
-        [<<"get">>, Key] -> 
-            Value = cache:get(cache, Key),
-            ?LOG_DEBUG("valeur retournée: ~p", [Value]),
-            gen_tcp:send(Process, Value);
-        [<<"delete">>, Key] -> 
-            cache:delete(cache, Key);
-        [<<"get_keys">>] -> 
-            Keys = cache:get_keys(cache),
-            ?LOG_DEBUG("valeur retournée: ~p", [Keys]),
-            gen_tcp:send(Process, Keys);
-        [<<"get_values">>] ->
-            Values = cache:get_values(cache),
-            ?LOG_DEBUG("valeur retournée: ~p", [Values]),
-            gen_tcp:send(Process, Values);
-        Command -> 
-            ?LOG_WARNING("commande ~p non supportée", [Command])
-    end.
