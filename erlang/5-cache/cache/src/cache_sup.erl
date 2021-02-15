@@ -30,11 +30,13 @@ init(_Args) ->
     CacheSpec = #{ id => cache, start => CacheStart },
 
     % udp feature
-    UdpStart = {supervisor, start_link, [{local, cache_udp_sup}, cache_udp_sup, []]},
+    UdpArgs = [{local, cache_udp_sup}, cache_udp_sup, []],
+    UdpStart = {supervisor, start_link, UdpArgs},
     UdpSpec = #{ id => cache_udp_sup, start => UdpStart, type => supervisor },
 
     % tcp feature
-    TcpStart = {supervisor, start_link, [{local, cache_tcp_sup}, cache_tcp_sup, []]},
+    TcpArgs = [{local, cache_tcp_sup}, cache_tcp_sup, []],
+    TcpStart = {supervisor, start_link, TcpArgs},
     TcpSpec = #{ id => cache_tcp_sup, start => TcpStart, type => supervisor },
     
     {ok, {SupervisorConf, [CacheSpec, UdpSpec, TcpSpec]}}.

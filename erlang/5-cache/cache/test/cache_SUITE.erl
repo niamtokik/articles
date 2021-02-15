@@ -92,9 +92,9 @@ cache(Config) ->
 cache_sup(Config) ->
     CacheSup = proplists:get_value(pid, Config),
     Count = supervisor:count_children(CacheSup),
-    2 = proplists:get_value(specs, Count),
-    2 = proplists:get_value(active, Count),
-    1 = proplists:get_value(supervisors, Count),
+    3 = proplists:get_value(specs, Count),
+    3 = proplists:get_value(active, Count),
+    2 = proplists:get_value(supervisors, Count),
     1 = proplists:get_value(workers, Count).
 
 %%--------------------------------------------------------------------
@@ -110,4 +110,3 @@ cache_app(_Config) ->
     Cache = erlang:whereis(cache),
     true = erlang:is_pid(Cache),
     cache([{pid, Cache}]).
-

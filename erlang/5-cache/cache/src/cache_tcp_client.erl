@@ -2,25 +2,33 @@
 %%%
 %%%-------------------------------------------------------------------
 -module(cache_tcp_client).
--export([start/1]).
--export([init/1, terminate/2]).
--export([handle_cast/2, handle_call/3, handle_info/2]).
+-export([add/4, delete/3, get/3, get_keys/2, get_values/2]).
 -behavior(gen_server).
 
-start(_) ->
-    ok.
+add(Host, Port, Key, Value) ->
+    send(Host, Port, async, [<<"add">>, Key, Value]).
 
-init(_) ->
-    ok.
+delete(Host, Port, Key) ->
+    send(Host, Port, async, [<<"delete">>, Key]).
 
-terminate(_,_) ->
-    ok.
+get(Host, Port, Key) ->
+    send(Host, Port, sync, [<<"get">>, Key]).
 
-handle_cast(_,_) ->
-    ok.
+get_keys(Host, Port) ->
+    send(Host, Port, sync, [<<"get_keys">>]).
 
-handle_call(_,_,_) ->
-    ok.
+get_values(Host, Port) ->
+    send(Host, Port, sync, [<<"get_values">>]).
 
-handle_info(_,_) ->
-    ok.
+send(Host, Port, Type, Command) ->
+    {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, false}]),
+    gen_tcp:send(Socket, cache_lib:join(Command)),
+    case Type of
+        async ->
+            gen_tcp:close(Socket);
+        sync ->
+            Return = gen_tcp:recv(Socket, 0),
+            gen_tcp:close(Socket),
+            Return
+    end.
+            

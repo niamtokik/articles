@@ -65,7 +65,7 @@ callback_mode() -> handle_event_function.
       Retour :: {ok, State, port()},
       State :: atom().
 init(Arguments) ->
-    logger:set_module_level(?MODULE, debug),
+    ?LOG_DEBUG("Démarrage du module ~p, ~p: ~p", [?MODULE, self(), Arguments]),
     Port = proplists:get_value(port, Arguments, 8888),
     Acceptors = proplists:get_value(acceptors, Arguments, 100),
     {ok, Listener} = gen_tcp:listen(Port, [binary, {active, true}]),
@@ -84,6 +84,7 @@ init(Arguments) ->
       Listener :: port(),
       Retour :: ok.
 terminate(_Raison, _Etat, Listener) ->
+    ?LOG_DEBUG("Arrêt du processus ~p en écoute", [self()]),
     {monitors, List} = erlang:process_info(self(), monitors),
     [ erlang:exit(Pid,kill) || {process, Pid} <- List ],
     gen_tcp:close(Listener).
@@ -114,6 +115,7 @@ acceptor(Listener) ->
       AcceptSock :: port(),
       Retour :: ok.
 acceptor_loop(AcceptSock) ->
+    ?LOG_DEBUG("~p attend la réception d'un message", [self()]),
     receive
         {tcp, Client, Message} = _Data ->
             ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
@@ -150,7 +152,9 @@ handle_event(info, {'DOWN', _Ref, process, Process, _}, started, Listener) ->
     ?LOG_DEBUG("Arrêt de l'acceptor ~p", [Process]),
     spawn_monitor(fun() -> acceptor(Listener) end),
     {keep_state, Listener};
-handle_event(info, Message, started, Listener) ->
+
+handle_event(Type, Message, started, Listener) ->
+    ?LOG_DEBUG("Réception d'un message ~p contenant ~p", [Type, Message]),
     {keep_state, Listener}.
 
     

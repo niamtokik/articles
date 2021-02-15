@@ -3,7 +3,6 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(cache_tcp_acceptor).
--export([start_link/0, start_link/1]).
 -export([init/1, terminate/3, callback_mode/0]).
 -export([accept/3, wait/3]).
 -behavior(gen_statem).
@@ -14,21 +13,8 @@
 
 %%--------------------------------------------------------------------
 %% @doc
-%% @end
-%%--------------------------------------------------------------------
-start_link() ->
-    start_link([]).
-
-%%--------------------------------------------------------------------
 %%
-%%--------------------------------------------------------------------
-start_link(Arguments) ->
-    gen_statem:start_link(?MODULE, Arguments, []).
-
-%%--------------------------------------------------------------------
-%% @doc
 %% @end
-%%
 %%--------------------------------------------------------------------
 callback_mode() -> state_functions.
 
@@ -38,7 +24,6 @@ callback_mode() -> state_functions.
 %%
 %%--------------------------------------------------------------------
 init(ListenerSock) ->
-    logger:set_module_level(?MODULE, debug),
     ?LOG_DEBUG("start acceptor ~p with ~p", [self(), ListenerSock]),
     Data = #data{ listener_sock = ListenerSock },
     {ok, wait, Data, [{next_event, internal, accept_socket}]}.
@@ -77,17 +62,11 @@ wait(internal, accept_socket, #data{ listener_sock = ListenerSock
 accept(info, {tcp, _Port, Message} = Content, #data{ acceptor_sock = AcceptSock } = Data) ->
     ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
     case cache_lib:parse(Message) of
-        {error, Raison} -> 
-            gen_tcp:send(AcceptSock, Raison);
-        {Command, Args} -> 
-            Ret = erlang:apply(cache, Command, Args),
-            case Ret of
-                Ret when is_bitstring(Ret) -> gen_tcp:send(AcceptSock, Ret);
-                Ret when is_list(Ret) -> gen_tcp:send(AcceptSock, Ret);
-                _ -> ok
-            end
+        {error, Raison} -> gen_tcp:send(AcceptSock, Raison);
+        {Module, Command, Args} -> reponse(Module, Command, Args, Data)
     end,
-    {keep_state, Data};
+    ok = gen_tcp:close(AcceptSock),
+    {next_state, wait, Data#data{ acceptor_sock = undefined }, [{next_event, internal, accept_socket}] };
 
 %
 accept(info, {tcp_closed, AcceptSock}, #data{ acceptor_sock = AcceptSock } = Data) ->
@@ -96,6 +75,22 @@ accept(info, {tcp_closed, AcceptSock}, #data{ acceptor_sock = AcceptSock } = Dat
     {next_state, wait, Data#data{ acceptor_sock = undefined }, [{next_event, internal, accept_socket}] };
 
 %
-accept(info, Message, Data) ->
-    ?LOG_DEBUG("Acceptor ~p reçoit ~p", [self(), Message]),
+accept(MessageType, Message, Data) ->
+    ?LOG_DEBUG("Acceptor ~p reçoit ~p type ~p", [self(), Message, MessageType]),
     {keep_state, Data}.
+
+%%--------------------------------------------------------------------
+%%
+%%--------------------------------------------------------------------
+reponse(Module, Command, Args, #data{ acceptor_sock = AcceptSock }) ->
+    Ret = erlang:apply(Module, Command, Args),
+    ?LOG_DEBUG("retour de la commande ~p, ~p: ~p", [Command, Args, Ret]),
+    case Ret of
+        Ret when is_bitstring(Ret) -> 
+            gen_tcp:send(AcceptSock, Ret);
+        Ret when is_list(Ret) -> 
+            gen_tcp:send(AcceptSock, Ret);
+        _ -> 
+            ?LOG_WARNING("valeur non supportée")
+    end.
+
