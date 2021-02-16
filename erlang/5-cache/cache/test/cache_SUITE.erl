@@ -28,6 +28,7 @@ suite() ->
 %% @end
 %%--------------------------------------------------------------------
 init_per_suite(_Config) ->
+    ok = application:ensure_started(cache),
     _Config.
 
 %%--------------------------------------------------------------------
@@ -41,40 +42,22 @@ end_per_suite(_Config) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-init_per_testcase(cache, Config) ->
-    {ok, Pid} = cache:start_link(),
-    [{pid,Pid}|Config];
-init_per_testcase(cache_sup, Config) ->
-    {ok, Pid} = cache_sup:start_link(),
-    [{pid,Pid}|Config];
-init_per_testcase(cache_app, Config) ->
-    ok = application:start(cache),
-    Config;
-init_per_testcase(crash_test, Config) ->
-    ok = application:start(cache),
+init_per_testcase(_, Config) ->
     Config.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-end_per_testcase(cache, Config) ->
-    Pid = proplists:get_value(pid, Config),
-    gen_server:stop(Pid);
-end_per_testcase(cache_sup, Config) ->
-    Pid = proplists:get_value(pid, Config),
-    gen_server:stop(Pid);
-end_per_testcase(cache_app, _Config) ->
-    application:stop(cache);
-end_per_testcase(crash_test, _Config) ->
-    application:stop(cache).
+end_per_testcase(_, Config) ->
+    Config.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
 cache(Config) ->
-    Cache = proplists:get_value(pid, Config),
+    Cache = cache,
     ok = cache:add(Cache, cle, valeur),
     [cle] = cache:get_keys(Cache),
     [valeur] = cache:get_values(Cache),
@@ -90,8 +73,7 @@ cache(Config) ->
 %% @end
 %%--------------------------------------------------------------------
 cache_sup(Config) ->
-    CacheSup = proplists:get_value(pid, Config),
-    Count = supervisor:count_children(CacheSup),
+    Count = supervisor:count_children(cache_sup),
     3 = proplists:get_value(specs, Count),
     3 = proplists:get_value(active, Count),
     2 = proplists:get_value(supervisors, Count),
@@ -102,7 +84,6 @@ cache_sup(Config) ->
 %% @end
 %%--------------------------------------------------------------------
 cache_app(_Config) ->
-    ok = application:ensure_started(cache),
     CacheSup = erlang:whereis(cache_sup),
     true = erlang:is_pid(CacheSup),
     cache_sup([{pid, CacheSup}]),

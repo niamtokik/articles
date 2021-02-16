@@ -25,6 +25,6 @@ init(Arguments) ->
                 , type => worker
                 },
 
-    ChildrenSpec = [AcceptorSup, Listener],
+    ChildrenSpec = [AcceptorSup,Listener],
     Supervisor = {SupervisorSpec, ChildrenSpec},
     {ok, Supervisor}.

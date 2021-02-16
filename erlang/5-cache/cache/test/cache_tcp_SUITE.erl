@@ -13,52 +13,50 @@
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-all() ->
-    [tcp].
+all() -> [tcp].
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-suite() ->
-    [].
+suite() -> [].
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
 init_per_suite(Config) ->
+    ok = application:ensure_started(cache),
     Config.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-end_per_suite(_Config) ->
-    ok.
+end_per_suite(_Config) -> ok.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-init_per_testcase(_, Config) ->
-    Config.
+init_per_testcase(_, Config) -> Config.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
-end_per_testcase(_, Config) ->
-    ok.
+end_per_testcase(_, Config) -> ok.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
 tcp(Config) ->
-    ok = cache_tcp_client:add(localhost, 8888, <<"key">>, <<"value">>),
-    {ok, <<"value">>} = cache_tcp_client:get(localhost, 8888, <<"key">>),
-    {ok, <<"key">>} = cache_tcp_client:get_keys(localhost, 8888),
-    {ok, <<"value">>} = cache_tcp_client:get_values(localhost, 8888),
-    ok = cache_tcp_client:delete(localhost, 8888, <<"key">>).
+    Cle = <<"key">>,
+    Valeur = <<"Valeur">>,
+    ok = cache_tcp_client:add(localhost, 8888, Cle, Valeur),
+    {ok, Valeur} = cache_tcp_client:get(localhost, 8888, Cle),
+    {ok, Cle} = cache_tcp_client:get_keys(localhost, 8888),
+    {ok, Valeur} = cache_tcp_client:get_values(localhost, 8888),
+    ok = cache_tcp_client:delete(localhost, 8888, Cle).
 
