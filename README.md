@@ -32,15 +32,15 @@ série d'article sur Erlang.
 | - | Erlang | Release et Déploiement d'application en Erlang | draft |
 | - | Erlang | Refactorisation d'une application Erlang | draft |
 | - | Erlang | Analyse Syntaxique en Erlang avec Leex et Yecc | draft |
-| - | Erlang | Étendre Erlang avec les ports | draft |
-| - | Erlang | Créaction de drivers pour Erlang | draft |
-| - | Erlang | Étendre Erlang avec les c-nodes | draft |
-| - | Erlang | Programmation C avec Erlang et les NIF | draft |
+| - | Erlang, C | Étendre Erlang avec les ports | draft |
+| - | Erlang, C | Créaction de drivers pour Erlang | draft |
+| - | Erlang, C | Étendre Erlang avec les c-nodes | draft |
+| - | Erlang, C | Programmation C avec Erlang et les NIF | draft |
 | - | Erlang | Découverte de Joxa, Gleam, Clojerl et LFE | draft | 
-| - | Erlang | Création d'interface graphique avec wx | draft |
+| - | Erlang, C | Création d'interface graphique avec wx | draft |
 | - | Erlang | Utilisation du protocole SNMP au sein d'Erlang | draft |
 | - | Erlang | Implémentation de Nostr en pure Erlang | draft |
-| - | Erlang | Interconnexion entre Erlang et Java avec Jinterface | draft |
+| - | Erlang, Java | Interconnexion entre Erlang et Java avec Jinterface | draft |
 | - | Erlang | Intégration de LDAP au sein d'un cluster Erlang | draft |
 | - | Erlang | Exemple d'utilisation de QLC avec Erlang | draft |
 | - | Erlang | Création d'une alternative à Mailhog en Erlang | draft |
