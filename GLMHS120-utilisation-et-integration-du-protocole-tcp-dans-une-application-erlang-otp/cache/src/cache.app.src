@@ -1,0 +1,15 @@
+{application, cache,
+ [{description, "A simple cache application"},
+  {vsn, "0.5.0"},
+  {registered, [cache_sup, cache]},
+  {mod, {cache_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    ssl
+   ]},
+  {env,[]},
+  {modules, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.

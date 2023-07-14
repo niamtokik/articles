@@ -1,0 +1,21 @@
+{application, cache,
+ [{description, "A simple cache application"},
+  {vsn, "0.7.0"},
+  {registered, [cache_sup, cache]},
+  {mod, {cache_app, [ssl, ssh]}},
+  {applications,
+   [kernel,
+    stdlib,
+    ssl,
+    ssh
+   ]},
+  {env,[{ssl, [
+    {protocol, tls},
+    {certfile, "cert.pem"},
+    {keyfile, "key.pem"},
+    {verify, verify_none}
+  ]}]},
+  {modules, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
