@@ -19,12 +19,13 @@ série d'article sur Erlang.
 | 2021-05 | Erlang | [Application réseau avec Erlang : utilisation du protocole UDP](https://connect.ed-diamond.com/GNU-Linux-Magazine/glmf-248/application-reseau-avec-erlang-utilisation-du-protocole-udp) | [sources](GLM248-application-réseau-avec-erlang-utilisation-du-protocole-udp) |
 | 2022-06 | Erlang | [Utilisation et intégration du protocole TCP dans une application Erlang/OTP](https://connect.ed-diamond.com/gnu-linux-magazine/glmfhs-120/utilisation-et-integration-du-protocole-tcp-dans-une-application-erlang-otp) | [sources](GLMHS120-utilisation-et-integration-du-protocole-tcp-dans-une-application-erlang-otp) |
 | 2023-07 | Erlang | [Introduction à la cryptographie avec Erlang/OTP](https://connect.ed-diamond.com/gnu-linux-magazine/glmf-264/introduction-a-la-cryptographie-avec-erlang-otp) | [sources](GLM264-introduction-a-la-cryptographie-avec-erlang-otp) |
-| - | Erlang | Gestion de certificats avec Erlang | draft |
-| - | Erlang | Connexion sécurisé avec TLS et Erlang | draft |
-| - | Erlang | Utilisation du protocole SSH en Erlang | draft |
-| - | Erlang | Création d'application web avec inets httpd | draft |
+| 2023-09 | Erlang | [Gestion de certificats avec Erlang](https://connect.ed-diamond.com/gnu-linux-magazine/glmf-265/generation-et-gestion-de-certificats-avec-erlang-otp) | [sources](GLM266-creation-de-connexion-securisee-avec-tls-et-erlang) |
+| 2023-11 | Erlang | [Connexion sécurisé avec TLS et Erlang](https://connect.ed-diamond.com/gnu-linux-magazine/glmf-266/creation-de-connexions-tls-dtls-avec-erlang-otp) | [sources](GLM266-creation-de-connexion-securisee-avec-tls-et-erlang) |
+| 2024-01 | Erlang | [Utilisation du protocole SSH en Erlang](https://connect.ed-diamond.com/gnu-linux-magazine/glmf-267/utilisation-du-protocole-ssh-avec-erlang-otp) | [sources](GLM267-utilisation-du-protocole-ssh-avec-erlang-otp) |
+| 2024-03 | Erlang | [Création d'application web avec inets httpd](https://connect.ed-diamond.com/gnu-linux-magazine/glmf-268/creation-d-un-serveur-web-avec-erlang-otp-et-inets-httpd) | [sources](GLM268-protocole-http-avec-erlang-et-inets-httpd) |
+| - | Erlang | Gestion d'états avec ETS et DETS | draft |
+| - | Erlang | Base de donnée relationnelle distribuée avec Mnesia | draft |
 | - | Erlang | Application REST en Erlang avec cowboy et gun | draft |
-| - | Erlang | Base de donnée distribuée en Erlang avec ETS/Mnesia | draft |
 | - | Erlang | Utilisation d'AMQP avec Erlang et RabbitMQ | draft |
 | - | Erlang | Debugging, Tracing et Benchmarking avec Erlang/OTP | draft |
 | - | Erlang | Utilisation de MQTT avec Erlang et VerneMQ | draft |
