@@ -26,7 +26,7 @@ init(_Args) ->
                         period => 5 },
 
     % cache feature
-    CacheStart = {gen_server, start_link, [{local, cache}, cache, [], []]},
+    CacheStart = {cache, start_link, [ets]},
     CacheSpec = #{ id => cache, start => CacheStart },
 
     % udp feature

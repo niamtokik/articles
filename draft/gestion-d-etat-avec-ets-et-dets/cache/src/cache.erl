@@ -4,80 +4,23 @@
 %%% @end
 %%%-------------------------------------------------------------------
 -module(cache).
--behaviour(gen_server).
--export([init/1, terminate/2]).
--export([handle_cast/2, handle_call/3]).
 -export([add/3, delete/2, get/2, get_keys/1, get_values/1]).
--export([start_link/0]).
+-export([start_link/1]).
 
 %%--------------------------------------------------------------------
 %% @doc start_link/0 permet d'utiliser la fonction
 %% gen_server:start_link/3 pour démarrer un processus lié.
 %% @end
 %%--------------------------------------------------------------------
--spec start_link() -> {ok, Pid} when
-      Pid :: pid().
-start_link() ->
-    gen_server:start_link(?MODULE, [], []).
-
-%%--------------------------------------------------------------------
-%% @doc ce processus ajout un event handler au démarrage et configure
-%% l'état avec une map nulle.
-%% @end
-%%--------------------------------------------------------------------
--spec init(Args) -> Result when
-      Args :: term(),
-      Result :: {ok, map()}.
-init(_Args) ->
-    Etat = #{},
-    {ok, Etat}.
-
-%%--------------------------------------------------------------------
-%% @doc terminate/2 ne fait rien et n'est pas essentielle dans ce cas
-%% là.
-%% @end
-%%--------------------------------------------------------------------
--spec terminate(Raison, Etat) -> Result when
-      Raison :: term(),
-      Etat :: map(),
-      Result :: ok.
-terminate(_Raison, _Etat) ->
-  ok.
-
-%%--------------------------------------------------------------------
-%% @doc handle_cast/2 est un callback permet, dans ce cas là de:
-%%   - créé une nouvelle clé/valeur
-%%   - supprimé une clé et sa valeur associée
-%% @end
-%%--------------------------------------------------------------------
--spec handle_cast(Message, Etat) -> Result when
-      Message :: {add, term(), term()} |
-                 {delete, term()},
-      Etat :: map(),
-      Result :: {noreply, map()}.
-handle_cast({add, Cle, Valeur}, Etat) ->    
-    {noreply, maps:put(Cle, Valeur, Etat)};
-handle_cast({delete, Cle}, Etat) ->
-    {noreply, maps:remove(Cle, Etat)}.
-
-%%--------------------------------------------------------------------
-%% @doc handle_cast/ est un callback qui permet de:
-%%   - récupérer la liste des clés
-%%   - récupérer la liste des valeurs
-%%   - récupéré la valeur associée à une clé.
-%% @end
-%%--------------------------------------------------------------------
--spec handle_call(Message, From, Etat) -> Resultat when
-      Message :: get_keys | get_values | {get, term()},
-      From :: {pid(), term()},
-      Etat :: map(),
-      Resultat :: {reply, term(), Etat}.
-handle_call(get_keys, _From, Etat) ->
-    {reply, maps:keys(Etat), Etat};
-handle_call(get_values, _From, Etat) ->
-    {reply, maps:values(Etat), Etat};
-handle_call({get, Cle}, _From, Etat) ->
-    {reply, maps:get(Cle, Etat, undefined), Etat}.
+-spec start_link(Mode) -> {ok, Pid} when
+      Mode :: map | ets,
+      Pid :: {ok, pid()} | {error, term()}.
+start_link(Mode) ->
+    case Mode of
+        map -> gen_server:start_link({local, cache}, cache_map, [], []);
+        ets -> gen_server:start_link({local, cache}, cache_ets, [], []);
+        _ -> {error, unsupported_mode}
+    end.
 
 %%--------------------------------------------------------------------
 %% @doc add/3 est une interface permettant de rajouter une clé

@@ -86,6 +86,8 @@ reponse(Module, Command, Args, #data{ acceptor_sock = AcceptSock }) ->
     Ret = erlang:apply(Module, Command, Args),
     ?LOG_DEBUG("retour de la commande ~p, ~p: ~p", [Command, Args, Ret]),
     case Ret of
+        ok -> 
+            gen_tcp:send(AcceptSock, <<"ok">>);
         Ret when is_bitstring(Ret) -> 
             gen_tcp:send(AcceptSock, Ret);
         Ret when is_list(Ret) -> 

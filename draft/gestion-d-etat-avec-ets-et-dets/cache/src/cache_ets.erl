@@ -39,9 +39,11 @@ handle_cast({delete, Cle}, Etat) ->
       Resultat :: {reply, term(), Etat}.
 
 handle_call(get_keys, _From, Etat) ->
-    {reply, ets:match(Etat, {'$1', '_'}), Etat};
+    Keys = lists:map(fun ([Key]) -> Key end, ets:match(Etat, {'$1', '_'})),
+    {reply, Keys, Etat};
 handle_call(get_values, _From, Etat) ->
-    {reply, ets:match(Etat, {'_', '$1'}), Etat};
+    Values = lists:map(fun ([Value]) -> Value end, ets:match(Etat, {'_', '$1'})),
+    {reply, Values, Etat};
 handle_call({get, Cle}, _From, Etat) ->
     case ets:select(Etat, [{{Cle, '$2'}, [], ['$2']}]) of
         [] -> {reply, undefined, Etat};
