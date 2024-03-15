@@ -4,7 +4,6 @@
 %%%-------------------------------------------------------------------
 -module(cache_tcp_client).
 -export([add/4, delete/3, get/3, get_keys/2, get_values/2]).
--behavior(gen_server).
 
 add(Host, Port, Key, Value) ->
     send(Host, Port, async, [<<"add">>, Key, Value]).

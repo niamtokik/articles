@@ -30,23 +30,31 @@ init(_Args) ->
     CacheSpec = #{ id => cache, start => CacheStart },
 
     % udp feature
-    UdpArgs = [{local, cache_udp_sup}, cache_udp_sup, []],
-    UdpStart = {supervisor, start_link, UdpArgs},
-    UdpSpec = #{ id => cache_udp_sup, start => UdpStart, type => supervisor },
+    % UdpArgs = [{local, cache_udp_sup}, cache_udp_sup, []],
+    % UdpStart = {supervisor, start_link, UdpArgs},
+    % UdpSpec = #{ id => cache_udp_sup, start => UdpStart, type => supervisor },
 
     % tcp feature
-    TcpArgs = [{local, cache_tcp_sup}, cache_tcp_sup, []],
-    TcpStart = {supervisor, start_link, TcpArgs},
-    TcpSpec = #{ id => cache_tcp_sup, start => TcpStart, type => supervisor },
+    % TcpArgs = [{local, cache_tcp_sup}, cache_tcp_sup, []],
+    % TcpStart = {supervisor, start_link, TcpArgs},
+    % TcpSpec = #{ id => cache_tcp_sup, start => TcpStart, type => supervisor },
 
     % tls feature
-    TlsArgs = [{local, cache_tls_sup}, cache_tls_sup, []],
-    TlsStart = {supervisor, start_link, TlsArgs},
-    TlsSpec = #{ id => cache_tls_sup, start => TlsStart, type => supervisor },
+    % TlsArgs = [{local, cache_tls_sup}, cache_tls_sup, []],
+    % TlsStart = {supervisor, start_link, TlsArgs},
+    % TlsSpec = #{ id => cache_tls_sup, start => TlsStart, type => supervisor },
 
-    % ssh featyre
-    SshArgs = [{local, cache_ssh_sup}, cache_ssh_sup, []],
-    SshStart = {supervisor, start_link, SshArgs},
-    SshSpec = #{ id => cache_ssh_sup, start => SshStart, type => supervisor },
+    % ssh feature
+    % SshArgs = [{local, cache_ssh_sup}, cache_ssh_sup, []],
+    % SshStart = {supervisor, start_link, SshArgs},
+    % SshSpec = #{ id => cache_ssh_sup, start => SshStart, type => supervisor },
     
-    {ok, {SupervisorConf, [CacheSpec, UdpSpec, TcpSpec, TlsSpec, SshSpec]}}.
+    % http feature
+    HttpArgs = [{server_name, "cache"},{port, 6080}
+	       ,{document_root, "/tmp"}
+	       ,{server_root, "/tmp"}
+	       ,{modules, [cache_http_server_handler]}],
+    HttpStart = {httpd, start_standalone, [HttpArgs]},
+    HttpSpec = #{ id => cache_http_sup, start => HttpStart, type => worker },
+
+    {ok, {SupervisorConf, [CacheSpec, HttpSpec]}}.

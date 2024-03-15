@@ -10,22 +10,22 @@
 %%--------------------------------------------------------------------
 %%
 %%--------------------------------------------------------------------
-main(Args) -> main(Args, #{}).
-
-%%--------------------------------------------------------------------
-%%
-%%--------------------------------------------------------------------
-main([], #{}) -> execute(#{ args => ["cache [server|client|help]"] });
-main([], _) -> execute(#{ args => ["cache [server|client|help]"] });
+main(Args) -> main(Args, #{});
 main(["help"|_]) -> main([]);
 main(["server"]) -> execute(#{ args => "cache server [start|help]" });
-main(["server","help"|_]) -> main(["server"]).
+main(["server","help"|_]) -> main(["server"]);
 main(["client"]) -> execute(#{ args => "cache client [http|udp|tcp|tls|ssh|help]" });
 main(["client","help"|_]) -> execute(#{ args => "cache client [http|udp|tcp|tls|ssh|help]" });
 main(["client","http"]) -> main(["client","help"]);
 main(["client","http","add"|Rest]) -> execute(#{ function => add, args => [http,Rest] });
 main(["client","http","get"|Rest]) -> execute(#{ function => get, args => [http,Rest] });
 main(["client","http","delete"|Rest]) -> execute(#{ function => delete, args => [http,Rest] }).
+
+%%--------------------------------------------------------------------
+%%
+%%--------------------------------------------------------------------
+main([], #{}) -> execute(#{ args => ["cache [server|client|help]"] });
+main([], _) -> execute(#{ args => ["cache [server|client|help]"] }).
 
 env() -> 
     Filter = fun("CACHE_"++ _) -> true; (_) -> false end,

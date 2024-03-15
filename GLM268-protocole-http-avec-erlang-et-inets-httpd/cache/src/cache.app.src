@@ -1,10 +1,10 @@
 {application, cache,
  [{description, "A simple cache application"},
-  {vsn, "0.7.0"},
+  {vsn, "0.8.0"},
   {registered, [cache_sup, cache]},
-  {mod, {cache_app, [ssl, ssh]}},
+  {mod, {cache_app, [ssl, ssh, inets]}},
   {applications,
-   [kernel, stdlib, ssl, ssh]},
+   [kernel, stdlib, ssl, ssh, inets]},
   {env,[{ssl, [{protocol, tls},{certfile, "cert.pem"}
               ,{keyfile, "key.pem"},{verify, verify_none}]}
        ,{ssh, [{port, 22222}]}]
