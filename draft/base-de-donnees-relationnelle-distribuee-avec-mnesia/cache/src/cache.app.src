@@ -1,0 +1,16 @@
+{application, cache,
+ [{description, "A simple cache application"},
+  {vsn, "0.9.0"},
+  {registered, [cache_sup, cache]},
+  {mod, {cache_app, [ssl, ssh]}},
+  {applications,
+   [kernel, stdlib, ssl, ssh, mnesia]},
+  {env,[{mode, mnesia}
+       ,{ssl, [{protocol, tls},{certfile, "cert.pem"}
+              ,{keyfile, "key.pem"},{verify, verify_none}]}
+       ,{ssh, [{port, 22222}]}]
+  },
+  {modules, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
